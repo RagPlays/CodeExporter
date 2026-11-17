@@ -26,18 +26,15 @@ def normalize(text, compact):
 
 
 def load_file(path, root, compact):
+    """Return (SourceFile, "") on success, or (None, reason) when skipped."""
     try:
-        text = _decode(path.read_bytes())
+        data = path.read_bytes()
     except OSError:
-        return None
+        return None, "unreadable"
+    text = _decode(data)
     if text is None:
-        return None
+        return None, "binary file"
     text = normalize(text, compact)
     if not text.strip():
-        return None
-    return SourceFile(path.relative_to(root).as_posix(), text)
-
-
-def load_files(paths, root, compact):
-    loaded = (load_file(path, root, compact) for path in paths)
-    return [file for file in loaded if file]
+        return None, "empty file"
+    return SourceFile(path.relative_to(root).as_posix(), text), ""

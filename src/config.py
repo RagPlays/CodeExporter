@@ -22,8 +22,11 @@ class Settings:
     names: frozenset
     excluded_dirs: tuple
     excluded_files: tuple
+    skip_paths: frozenset
     chunk_chars: int
     max_file_bytes: int
     split_output: bool
     compact: bool
     include_tree: bool
+    show_files: bool
+    show_skipped: bool
