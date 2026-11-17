@@ -1,5 +1,6 @@
 import argparse
 import functools
+import os
 import sys
 from pathlib import Path
 
@@ -46,7 +47,7 @@ def build_parser():
         argparse.RawDescriptionHelpFormatter, max_help_position=30, width=88
     )
     parser = argparse.ArgumentParser(
-        prog=Path(sys.argv[0]).name,
+        prog=os.environ.get("EXPORTCODE_PROG") or Path(sys.argv[0]).name,
         usage="%(prog)s [options] [ROOT]",
         description=DESCRIPTION,
         epilog=EPILOG.format(excludes=", ".join(config.DEFAULT_EXCLUDED_DIRS)),

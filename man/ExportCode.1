@@ -1,0 +1,189 @@
+.TH EXPORTCODE 1 "November 2026" "ExportCode 1.1.0" "User Commands"
+.SH NAME
+ExportCode \- export source code into AI\-friendly text chunks
+.SH SYNOPSIS
+.B exportcode
+[\fIOPTIONS\fR] [\fIROOT\fR]
+.SH DESCRIPTION
+.B ExportCode
+walks
+.I ROOT
+(default: the current directory) recursively, so every subfolder is included,
+reads all text files it finds and writes them to one or more text files.
+Each file is introduced by a marker line, a project tree is placed at the top,
+and the output is split into chunks of a configurable size so that it can be
+pasted into an AI chat window piece by piece.
+.PP
+While running, every file found is listed by its path relative to
+.IR ROOT .
+Exported files are prefixed with
+.B +
+and skipped files with
+.B \-
+followed by the reason in parentheses. Directories that were not entered
+are listed once, with a trailing slash.
+.SH OPTIONS
+.SS Arguments
+.TP
+.I ROOT
+Project folder to export. Defaults to the current directory.
+.SS Selecting files
+.TP
+\fB\-e\fR, \fB\-\-ext\fR \fIEXT\fR...
+Only export files with these extensions. The leading dot is optional
+(\fBpy\fR and \fB.py\fR are equal). Without this option all text files are
+exported.
+.TP
+\fB\-n\fR, \fB\-\-name\fR \fIFILE\fR...
+Also include files with these exact names, for example
+.BR CMakeLists.txt .
+.TP
+\fB\-x\fR, \fB\-\-exclude\-dir\fR \fIDIR\fR...
+Folder names, relative paths or shell globs to skip.
+.TP
+\fB\-\-exclude\-file\fR \fIPATTERN\fR...
+File globs to skip, for example \fB*.min.js\fR.
+.TP
+.B \-\-no\-default\-excludes
+Do not skip the folders listed under
+.BR "DEFAULT EXCLUDES" .
+.TP
+\fB\-\-max\-file\-kb\fR \fIKB\fR
+Skip files larger than this many kilobytes. Default: 500.
+.SS Output
+.TP
+\fB\-o\fR, \fB\-\-output\fR \fIPATH\fR
+Output file. Default:
+.BI ./ NAME _export.txt
+in the current directory, where
+.I NAME
+is the name of
+.IR ROOT .
+.TP
+\fB\-c\fR, \fB\-\-chunk\-size\fR \fICHARS\fR
+Maximum number of characters per chunk. Default: 60000.
+.TP
+.B \-\-split\-output
+Write one file per chunk (\fINAME\fB_1.txt\fR, \fINAME\fB_2.txt\fR, ...)
+instead of a single file.
+.TP
+.B \-\-raw
+Keep whitespace untouched. By default trailing spaces and runs of blank lines
+are removed.
+.TP
+.B \-\-no\-tree
+Omit the project structure from the first chunk.
+.SS Terminal display
+.TP
+\fB\-q\fR, \fB\-\-quiet\fR
+Do not list files; print only the summary.
+.TP
+.B \-\-hide\-skipped
+List only exported files.
+.SS Other
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show the built\-in help and exit.
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Show the version and exit.
+.SH SKIP REASONS
+.TP
+.B excluded directory
+The folder matches a default exclude or \fB\-\-exclude\-dir\fR.
+.TP
+.B excluded file pattern
+The file matches \fB\-\-exclude\-file\fR.
+.TP
+.B extension not selected
+Filtered out by \fB\-\-ext\fR / \fB\-\-name\fR.
+.TP
+.B larger than N KB
+Bigger than \fB\-\-max\-file\-kb\fR.
+.TP
+.B binary file
+Contains NUL bytes (images, archives, executables, ...).
+.TP
+.B empty file
+Nothing but whitespace.
+.TP
+.B previous export output
+Looks like an earlier output file from the same run location.
+.TP
+.B export tool
+The ExportCode script or its \fBsrc\fR folder.
+.SH DEFAULT EXCLUDES
+These folder names are skipped at any depth unless
+.B \-\-no\-default\-excludes
+is given:
+\&.git, \&.svn, \&.hg, \&.idea, \&.vscode, \&.vs, node_modules, __pycache__,
+\&.venv, venv, env, build, dist, out, bin, obj, target, \&.mypy_cache,
+\&.pytest_cache, \&.cache, \&.gradle.
+.SH EXAMPLES
+Export the current project, all subfolders included:
+.PP
+.RS
+.nf
+exportcode
+.fi
+.RE
+.PP
+Only Python and Markdown files, written to a chosen file:
+.PP
+.RS
+.nf
+exportcode ~/proj \-e py md \-o ~/proj.txt
+.fi
+.RE
+.PP
+C++ project with CMake files, skipping tests and minified files:
+.PP
+.RS
+.nf
+exportcode ~/proj \-e cpp h \-n CMakeLists.txt \e
+    \-x tests \-\-exclude\-file "*.min.js"
+.fi
+.RE
+.PP
+Small chunks, one file each, summary only:
+.PP
+.RS
+.nf
+exportcode . \-c 30000 \-\-split\-output \-q
+.fi
+.RE
+.SH NOTES
+Options that take several values (\fB\-e\fR, \fB\-n\fR, \fB\-x\fR,
+\fB\-\-exclude\-file\fR) consume every following word. Give
+.I ROOT
+before them, or end the list with
+.BR \-\- .
+.PP
+Colors are used when writing to a terminal; set
+.B NO_COLOR
+to disable them.
+.SH EXIT STATUS
+.TP
+.B 0
+At least one file was exported.
+.TP
+.B 1
+.I ROOT
+is not a directory, or no matching files were found.
+.SH INSTALLATION
+View without installing:
+.PP
+.RS
+.nf
+man ./man/ExportCode.1
+.fi
+.RE
+.PP
+Install for the current user:
+.PP
+.RS
+.nf
+mkdir \-p ~/.local/share/man/man1
+cp man/ExportCode.1 ~/.local/share/man/man1/
+.fi
+.RE
